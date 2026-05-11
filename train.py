@@ -140,6 +140,23 @@ class CatCNN(nn.Module):
 # Thus, this creates the model and stores the tensors in device memory
 model = CatCNN(num_classes=2).to(device)
 
+# -----------------------------------
+# Loss and optimiser
+# -----------------------------------
+
+loss_fn = nn.CrossEntropyLoss()
+# Backward propagation only calculates the gradient
+# PyTorch uses an optimiser to actually perform the weights updates
+# Rather than using a simple optimiser, PyTorch allows us to use Adam
+# Adam stands for Adaptive Moment Estimation and is an adaptive
+# optimiser
+# It keeps track of statistics such as the average magnitude of change
+# in the weights recently and the direction of the change
+# It then uses this information to answer questions like:
+# 1. Has this weight been consistently changing in this direction?
+# 2. Are the gradients for this weight usually large or small?
+# 3. Should I take a bigger or smaller step for this weight update?
+optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 
 

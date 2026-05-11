@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 # -----------------------------------
 # Training settings:
 # -----------------------------------
+print("Setting up training settings")
 
 # Constants
 DATA_DIR = Path("data")
@@ -23,6 +24,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -----------------------------------
 # Transformation functions
 # -----------------------------------
+print("Defining transformation functions")
 
 # Image data transformation for training
 train_transforms = transforms.Compose([
@@ -49,6 +51,7 @@ eval_transforms = transforms.Compose([
 # -----------------------------------
 # Loading datasets
 # -----------------------------------
+print("Loading datasets")
 
 # Transform raw images into datasets that undergo the above transformations
 # where each image has their own correct label
@@ -71,6 +74,7 @@ test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 # -----------------------------------
 # Convolutional neural network
 # -----------------------------------
+print("Defining the CNN")
 
 class CatCNN(nn.Module):
     def __init__(self, num_classes=2):
@@ -146,6 +150,7 @@ class CatCNN(nn.Module):
 # -----------------------------------
 # Define the model
 # -----------------------------------
+print("Defining the model variable")
 
 # In PyTorch, the model is not just "code". It contains many tensors,
 # and some of those tensors are learnable parameters. 
@@ -155,12 +160,14 @@ model = CatCNN(num_classes=2).to(device)
 # -----------------------------------
 # Loss
 # -----------------------------------
+print("Defining the loss function")
 
 loss_fn = nn.CrossEntropyLoss()
 
 # -----------------------------------
 # Optimiser
 # -----------------------------------
+print("Defining the optimiser")
 
 # Backward propagation only calculates the gradient
 # PyTorch uses an optimiser to actually perform the weights updates
@@ -178,6 +185,7 @@ optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # -----------------------------------
 # Evaluation function
 # -----------------------------------
+print("Defining the evaluation function")
 
 # The evaluation function assesses how well the model performs
 # against test data
@@ -222,6 +230,7 @@ def eval_fn(loader):
 # -----------------------------------
 # Training Loop
 # -----------------------------------
+print("Starting training")
 
 best_val_accuracy = 0
 
@@ -262,6 +271,7 @@ for epoch in range(EPOCHS):
 # -----------------------------------
 # Final test
 # -----------------------------------
+print("Conduct final model test")
 
 model.load_state_dict(torch.load("best_cat_cnn.pth", map_location=device))
 test_loss, test_accuracy = eval_fn(test_loader)

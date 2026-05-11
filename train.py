@@ -72,6 +72,8 @@ class CatCNN(nn.Module):
 
         # Features is a sequential neural network model comprised of four
         # convolutional layers
+        # nn.Sequential() returns an object whose type is:
+        # torch.nn.modules.container.Sequential
         self.features = nn.Sequential(
             # First convolution layer - Learn simple features
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
@@ -117,6 +119,29 @@ class CatCNN(nn.Module):
             # PyTorch's cross entropy loss calculates the log-softmax from the
             # raw logits of the final linear output layer
         )
+
+    # In Python, instance methods normally write self explicitly
+    def forward(self, x):
+        # In Python, some objects can be called like functions
+        # Objects are callable if their class defines a special method called __call__
+        # That is the case for nn.Module, of which nn.Sequential is a child class
+        # features is a type of nn.Sequential, so it can also be called like a
+        # function
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+    
+# -----------------------------------
+# Define the model
+# -----------------------------------
+
+# In PyTorch, the model is not just "code". It contains many tensors,
+# and some of those tensors are learnable parameters. 
+# Thus, this creates the model and stores the tensors in device memory
+model = CatCNN(num_classes=2).to(device)
+
+
+
 
 
 

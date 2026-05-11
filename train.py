@@ -186,6 +186,9 @@ optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # By default, PyTorch CrossEntropyLoss() calculates the average
 # loss
 def eval_fn(loader):
+    model.eval() # Set the model to evaluation mode to drop all
+    # training mode specific settings like Dropout()
+
     total_loss = 0
     correct = 0
     total_images = 0
@@ -216,10 +219,6 @@ def eval_fn(loader):
     accuracy = correct / total_images
 
     return average_loss, accuracy
-
-
-
-
 
 
 

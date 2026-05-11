@@ -102,7 +102,23 @@ class CatCNN(nn.Module):
             # Output: 256 x 8 x 8
         )
 
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            # Map the flattened feature maps of size 256 x 8 x 8 to 256 hidden neurons
+            nn.Linear(256 * 8 * 8, 256),
+            # ReLU for non-linear activation
+            nn.ReLU(),
+            # Randomly dropout the output from the hidden neurons to reduce risk of
+            #overfitting
+            nn.Dropout(0.4),
+            # Final output layer with 2 hidden neurons
+            nn.Linear(256, num_classes)
+            # Note: The final output layer doesn't need softmax activation because 
+            # PyTorch's cross entropy loss calculates the log-softmax from the
+            # raw logits of the final linear output layer
+        )
 
-        
+
+
 
 

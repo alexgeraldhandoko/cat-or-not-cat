@@ -52,12 +52,18 @@ eval_transforms = transforms.Compose(
 
 # Transform raw images into datasets that undergo the above transformations
 # where each image has their own correct label
+# The dataset is a container like a java collection where each item in the
+# collection is a 3 x 128 x 128 image and the label corresponding to that
+# image
 train_dataset = datasets.ImageFolder(DATA_DIR / "train", transform=train_transforms)
 val_dataset = datasets.ImageFolder(DATA_DIR / "val", transform=eval_transforms)
 test_dataset = datasets.ImageFolder(DATA_DIR / "test", transform=eval_transforms)
 
 # Transforms each dataset into batches of smaller shuffled dataset that can be passed 
 # into the model
+# The loader is a container like a java collection where one item in the collection
+# is a pair, where the first item in the pair is a collection of 32 images and the
+# second item in the pair is a container containing their 32 corresponding labels
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
@@ -121,6 +127,12 @@ class CatCNN(nn.Module):
         )
 
     # In Python, instance methods normally write self explicitly
+    # Thus, we pass in the self inside the method parameters when we define them
+    # In PyTorch, children of the nn.Module class needs to define and override
+    # a forward method
+    # In PyTorch, the forward() method is automatically called when the children of
+    # the nn.Module class gets passed in a data from a loader, with the data
+    # being the argument into the forward() method call
     def forward(self, x):
         # In Python, some objects can be called like functions
         # Objects are callable if their class defines a special method called __call__
@@ -162,6 +174,49 @@ loss_fn = nn.CrossEntropyLoss()
 # 2. Are the gradients for this weight usually large or small?
 # 3. Should I take a bigger or smaller step for this weight update?
 optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+# -----------------------------------
+# Evaluation function
+# -----------------------------------
+
+# The evaluation function assesses how well the model performs
+# against test data
+# .item() converts a single-value PyTorch tensor into a normal
+# Python number
+# By default, PyTorch CrossEntropyLoss() calculates the average
+# loss
+def eval_fn(loader):
+    total_loss = 0
+    correct = 0
+    total_images = 0
+
+    with torch.no_grad():
+        for images, labels in loader:
+            # The labels and images need to be moved to device as well
+            # because PyTorch needs labels, images, and model to be on
+            # the same device for computation
+            labels = labels.to(device)
+            images = images.to(device)
+
+            # Do the model computation
+            outputs = model(images)
+
+            # Do the model loss computation using raw logits
+            loss = loss_fn(outputs, labels)
+            total_loss += loss.item() * images.size(0)
+
+            # Compute predictions and count correct predictions
+            predictions = outputs.argmax(dim=1)
+            correct += (predictions == labels).sum().item()
+
+            # Increment total images evaluated
+            total_images += images.size(0)
+
+    average_loss = total_loss / total_images
+    accuracy = correct / total_images
+
+    return average_loss, accuracy
+
 
 
 

@@ -37,13 +37,13 @@ train_transforms = transforms.Compose([
 ])
 
 # Image data transformation for evaluation
-eval_transforms = transforms.Compose(
+eval_transforms = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
     transforms.Normalize(
         mean=[0.5, 0.5, 0.5],
         std=[0.5, 0.5, 0.5]
-    )
+    )]
 )
 
 # -----------------------------------
@@ -83,28 +83,28 @@ class CatCNN(nn.Module):
         self.features = nn.Sequential(
             # First convolution layer - Learn simple features
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
-            nn.RelU(),
+            nn.ReLU(),
             # Output: 32 x 128 x 128
             nn.MaxPool2d(2),
             # Output: 32 x 64 x 64
 
             # Second convolution layer - Learn intermediate features
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.RelU(),
+            nn.ReLU(),
             # Output: 64 x 64 x 64
             nn.MaxPool2d(2),
             # Output: 64 x 32 x 32
 
             # Third convolution layer - Learn more intermediate features
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.RelU,
+            nn.ReLU(),
             # Output: 128 x 32 x 32
             nn.MaxPool2d(2),
             # Output: 128 x 16 x 16
 
             # Fourth convolution layer - Learn task-specific features
             nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.ReLU,
+            nn.ReLU(),
             # Output: 256 x 16 x 16
             nn.MaxPool2d(2)
             # Output: 256 x 8 x 8
@@ -186,6 +186,8 @@ optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # By default, PyTorch CrossEntropyLoss() calculates the average
 # loss
 def eval_fn(loader):
+    model.eval() 
+
     total_loss = 0
     correct = 0
     total_images = 0
@@ -247,8 +249,8 @@ for epoch in range(EPOCHS):
 
     print(
         f"Epoch {epoch + 1}/{EPOCHS} | "
-        f"Train Loss: {train_loss:.4f}"
-        f"Val Loss: {val_loss:.4f}"
+        f"Train Loss: {train_loss:.4f} | "
+        f"Val Loss: {val_loss:.4f} | "
         f"Val Accuracy: {val_accuracy:.4f}"
     )
 
@@ -264,6 +266,6 @@ for epoch in range(EPOCHS):
 model.load_state_dict(torch.load("best_cat_cnn.pth", map_location=device))
 test_loss, test_accuracy = eval_fn(test_loader)
 
-print(f"Best validation accuracy: {best_val_accuracy}")
-print(f"Test loss: {test_loss}")
+print(f"Best validation accuracy: {best_val_accuracy} | ")
+print(f"Test loss: {test_loss} | ")
 print(f"Test accuracy: {test_accuracy}")

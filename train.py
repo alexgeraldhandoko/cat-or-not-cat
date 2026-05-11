@@ -217,6 +217,49 @@ def eval_fn(loader):
 
     return average_loss, accuracy
 
+# -----------------------------------
+# Training Loop
+# -----------------------------------
+
+best_val_accuracy = 0
+
+for epoch in range(EPOCHS):
+    model.train()
+
+    total_train_loss = 0
+
+    for images, labels in train_loader:
+        images = images.to(device)
+        labels = labels.to(device)
+
+        optimiser.zero_grad()
+
+        outputs = model(images)
+        loss = loss_fn(outputs, labels)
+
+        loss.backward()
+        optimiser.step()
+
+        total_train_loss += loss.item() * images.size(0)
+
+    train_loss = total_train_loss / len(train_dataset)
+    val_loss, val_accuracy = eval_fn(val_loader)
+
+    print(
+        f"Epoch {epoch + 1}/{EPOCHS} | "
+        f"Train Loss: {train_loss:.4f}"
+        f"Val Loss: {val_loss:.4f}"
+        f"Val Accuracy: {val_accuracy:.4f}"
+    )
+
+    if val_accuracy > best_val_accuracy:
+        best_val_accuracy = val_accuracy
+        print("New best model found")
+        torch.save(model.state_dict(), "best_cat_cnn.pth")
+
+
+
+
 
 
 

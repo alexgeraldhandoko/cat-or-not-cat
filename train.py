@@ -257,13 +257,13 @@ for epoch in range(EPOCHS):
         print("New best model found")
         torch.save(model.state_dict(), "best_cat_cnn.pth")
 
+# -----------------------------------
+# Final test
+# -----------------------------------
 
+model.load_state_dict(torch.load("best_cat_cnn.pth", map_location=device))
+test_loss, test_accuracy = eval_fn(test_loader)
 
-
-
-
-
-
-
-
-
+print(f"Best validation accuracy: {best_val_accuracy}")
+print(f"Test loss: {test_loss}")
+print(f"Test accuracy: {test_accuracy}")

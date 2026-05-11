@@ -141,10 +141,15 @@ class CatCNN(nn.Module):
 model = CatCNN(num_classes=2).to(device)
 
 # -----------------------------------
-# Loss and optimiser
+# Loss
 # -----------------------------------
 
 loss_fn = nn.CrossEntropyLoss()
+
+# -----------------------------------
+# Optimiser
+# -----------------------------------
+
 # Backward propagation only calculates the gradient
 # PyTorch uses an optimiser to actually perform the weights updates
 # Rather than using a simple optimiser, PyTorch allows us to use Adam

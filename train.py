@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import torch
 import torch.nn as nn
@@ -17,6 +18,18 @@ IMG_SIZE = 128
 BATCH_SIZE = 32
 EPOCHS = 15
 LEARNING_RATE = 0.001
+
+# Resume training option
+BEST_MODEL_PATH = Path("best_cat_cnn.pth")
+CHECKPOINT_PATH = Path("last_checkpoint.pth")
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--resume",
+    action="store_true",
+    help="Resume training from last_checkpoint.pth if it exists."
+)
+args = parser.parse_args()
 
 #Processor choice 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -160,6 +173,7 @@ model = CatCNN(num_classes=2).to(device)
 # -----------------------------------
 # Loss
 # -----------------------------------
+
 print("Defining the loss function")
 
 loss_fn = nn.CrossEntropyLoss()
@@ -167,6 +181,7 @@ loss_fn = nn.CrossEntropyLoss()
 # -----------------------------------
 # Optimiser
 # -----------------------------------
+
 print("Defining the optimiser")
 
 # Backward propagation only calculates the gradient
@@ -185,6 +200,7 @@ optimiser = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # -----------------------------------
 # Evaluation function
 # -----------------------------------
+
 print("Defining the evaluation function")
 
 # The evaluation function assesses how well the model performs
@@ -228,13 +244,40 @@ def eval_fn(loader):
     return average_loss, accuracy
 
 # -----------------------------------
+# Resume Training If Requested
+# -----------------------------------
+
+start_epoch = 0
+best_val_accuracy = -1.0
+
+if args.resume and CHECKPOINT_PATH.exists():
+    print(f"Resuming training from {CHECKPOINT_PATH}")
+
+    checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
+
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimiser.load_state_dict(checkpoint["optimiser_state_dict"])
+
+    start_epoch = checkpoint["epoch"] + 1
+    best_val_accuracy = checkpoint["best_val_accuracy"]
+
+    print(f"Already trained for {start_epoch} epochs.")
+    print(f"Previous best validation accuracy: {best_val_accuracy:.4f}")
+elif args.resume:
+    print("Resume requested, but no checkpoint was found. Starting model training from scratch.")
+else:
+    print("Starting model training from scratch")
+
+
+# -----------------------------------
 # Training Loop
 # -----------------------------------
+
 print("Starting training")
 
-best_val_accuracy = 0
+end_epoch = start_epoch + EPOCHS
 
-for epoch in range(EPOCHS):
+for epoch in range(start_epoch, end_epoch):
     model.train()
 
     total_train_loss = 0
@@ -257,23 +300,39 @@ for epoch in range(EPOCHS):
     val_loss, val_accuracy = eval_fn(val_loader)
 
     print(
-        f"Epoch {epoch + 1}/{EPOCHS} | "
+        f"Epoch {epoch + 1}/{end_epoch} | "
         f"Train Loss: {train_loss:.4f} | "
         f"Val Loss: {val_loss:.4f} | "
         f"Val Accuracy: {val_accuracy:.4f}"
     )
 
+    # Store the best model so far
     if val_accuracy > best_val_accuracy:
         best_val_accuracy = val_accuracy
         print("New best model found")
-        torch.save(model.state_dict(), "best_cat_cnn.pth")
+        torch.save(model.state_dict(), BEST_MODEL_PATH)
+    
+    # Save the most recent model into the checkpoint file
+    # every epoch, even if it doesn't yield the best val
+    # accuracy since we want to save progress of the most
+    # recent epoch into the checkpoint
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimiser_state_dict": optimiser.state_dict(),
+            "best_val_accuracy": best_val_accuracy,
+            "class_to_idx": train_dataset.class_to_idx
+        },
+        CHECKPOINT_PATH
+    )
 
 # -----------------------------------
 # Final test
 # -----------------------------------
 print("Conduct final model test")
 
-model.load_state_dict(torch.load("best_cat_cnn.pth", map_location=device))
+model.load_state_dict(torch.load(BEST_MODEL_PATH, map_location=device))
 test_loss, test_accuracy = eval_fn(test_loader)
 
 print(f"Best validation accuracy: {best_val_accuracy} | ")

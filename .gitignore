@@ -8,6 +8,8 @@ data.zip
 best_cat_cnn.pth
 last_checkpoint.pth
 
+!apps/api/models/best_cat_cnn.pth
+
 # Next.js / npm generated folders
 node_modules/
 .next/

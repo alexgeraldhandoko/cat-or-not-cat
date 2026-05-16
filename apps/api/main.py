@@ -8,6 +8,8 @@ from pathlib import Path
 
 from .model import load_model, predict_image
 
+import os
+
 MODEL_PATH = Path(__file__).parent / "models" / "best_cat_cnn.pth"
 
 # Define the device and model states of the application before the run
@@ -27,12 +29,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Add the CORS allow list so that the frontend can talk to the backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+allowed_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000"
-    ],
+]
+
+frontend_url = os.getenv("FRONTEND_URL")
+
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]

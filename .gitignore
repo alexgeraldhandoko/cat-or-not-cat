@@ -1,6 +1,19 @@
+# Dataset files from the ML project
 archive/
 data/
 archive.zip
-best_cat_cnn.pth
 data.zip
+
+# Trained PyTorch models
+best_cat_cnn.pth
 last_checkpoint.pth
+
+# Next.js / npm generated folders
+node_modules/
+.next/
+
+# Local environment variable files
+.env.local
+
+# Python virtual environment
+.venv

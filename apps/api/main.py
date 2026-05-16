@@ -53,6 +53,10 @@ app.add_middleware(
 def home():
     return {"message": "Cat or Not Cat API is running"}
 
+@app.head("/")
+def head():
+    return None
+
 @app.get("/health")
 def health():
     return {"status": "ok"}

@@ -99,11 +99,6 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
             Upload an animal image.
           </h1>
-
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
-            This website will eventually connect to your PyTorch model. For now,
-            the frontend upload and result display are working first.
-          </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">

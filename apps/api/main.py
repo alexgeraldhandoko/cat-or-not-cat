@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from io import BytesIO
 
@@ -25,6 +26,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Add the CORS allow list so that the frontend can talk to the backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 # @app.get() creates a route
 # A route means that when that route is entered, run this function
 @app.get("/")
@@ -50,7 +63,7 @@ async def predict(request: Request, file: UploadFile):
 
     try:
         # BytesIO takes in a raw image file and wraps it in a file-like object
-        image = Image.open(BytesIO(image_bytes))
+        image = Image.open(BytesIO(image_bytes)).convert("RGB")
     except Exception as exc:
         raise HTTPException(status_code=400, detail="Invalid image file") from exc
 

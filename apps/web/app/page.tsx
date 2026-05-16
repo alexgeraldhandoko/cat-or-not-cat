@@ -4,13 +4,17 @@ import { ChangeEvent, useMemo, useState } from "react";
 
 type PredictionResult = {
   label: "cat" | "not_cat";
-  confidence: number
+  confidence: number;
 }
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>();
 
   const resultText = useMemo(() => {
     if (result === null) {
@@ -27,7 +31,7 @@ export default function Home() {
 
     return {
        emoji: "😾",
-        title: "This is a cat!",
+        title: "This is not a cat!",
         message: "The avatar is angry because this is not a cat."
     };
   }, [result])
@@ -36,6 +40,7 @@ export default function Home() {
     const file = event.target.files?.[0];
 
     setResult(null);
+    setErrorMessage(null);
 
     if (!file) {
       setSelectedFile(null);
@@ -47,17 +52,40 @@ export default function Home() {
     setPreviewUrl(URL.createObjectURL(file));
   }
 
-  function handleFakePrediction() {
+  async function handlePrediction() {
     if (!selectedFile) {
       return;
     }
 
-    const fakeResult: PredictionResult = {
-      label: Math.random() > 0.5 ? "cat" : "not_cat",
-      confidence: 0.91,
-    };
+    setIsLoading(true);
+    setErrorMessage(null);
+    setResult(null);
 
-    setResult(fakeResult);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await fetch(`${API_URL}/predict`, {
+        method: "POST",
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail ?? "Prediction failed");
+      }
+
+      const data: PredictionResult = await response.json();
+      setResult(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Something went wrong");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -112,16 +140,22 @@ export default function Home() {
             />
 
             <button
-              onClick={handleFakePrediction}
-              disabled={!selectedFile}
+              onClick={handlePrediction}
+              disabled={!selectedFile || isLoading}
               className="mt-5 w-full rounded-xl bg-cyan-400 px-5 py-3 font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Classify image
+              {isLoading ? "Classifying..." : "Classify image"}
             </button>
 
             {selectedFile && (
               <p className="mt-4 text-sm text-slate-400">
                 Selected file: {selectedFile.name}
+              </p>
+            )}
+
+            {errorMessage && (
+              <p className="mt-4 rounded-xl bg-red-500/10 p-4 text-sm text-red-300">
+                {errorMessage}
               </p>
             )}
           </div>

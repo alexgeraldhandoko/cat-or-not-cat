@@ -16,7 +16,7 @@ CAT_LABELS = ["cat", "not_cat"]
 # real prediction task
 def build_image_transform():
     return transforms.Compose([
-        transforms.Resize(IMG_SIZE, IMG_SIZE),
+        transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.5, 0.5, 0.5],
@@ -47,17 +47,17 @@ def predict_image(image: Image.Image, model: CatCNN, device: torch.device):
     # image tensor shape: 1 x 3 x 128 x 128
 
     with torch.no_grad():
-        outputs = model(image)
+        outputs = model(image_tensor)
         # output shape: 1 x 2, since it processes results for all the 
         # batches, which is just one batch in this case
         probabilities = torch.softmax(outputs, dim=1)
         confidence, index = torch.max(probabilities, dim=1)
     
-    label = CAT_LABELS[index]
+    label = CAT_LABELS[index.item()]
 
     return {
         "label": label,
-        "confidence": confidence
+        "confidence": confidence.item()
     }
 
 
